@@ -1,4 +1,5 @@
 This repository contains example scripts to demonstrate inspection and reformatting of multimodal data contained in XDF files. 
+Example specifically shows how to do it for EEG & Motion data. 
 
 # Prerequisite 
 1. Matlab version 2020 or higher
@@ -15,3 +16,6 @@ Example source data files used in the scripts are provided here on [GDrive](http
 
 
 Slides from presentation about LSL to BIDS conversion : https://docs.google.com/presentation/d/183mtdsQl2GG-ijWJDyYqht7YIfVvb4e2YBcvvTyJSkw/edit?usp=sharing
+
+# Note 
+Now only basic features are demonstrated for providing a "starting point" - documentation & updated to show how to deal with time synch between streams 
