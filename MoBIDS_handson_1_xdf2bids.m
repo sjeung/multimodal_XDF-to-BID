@@ -32,13 +32,32 @@ MotionStreamInd         = find(strcmp(streamNames, MotionStreamName));
 EEGftData           = stream_to_ft(streams{EEGStreamInd}); 
 MotionftData        = stream_to_ft(streams{MotionStreamInd}); 
 
-% 3. enter generic metadata
+% 3. Save time synch information
+%--------------------------------------------------------------------------
+
+% compute difference between onset times
+onsetDiff = MotionftData.hdr.FirstTimeStamp - EEGftData.hdr.FirstTimeStamp; 
+
+% time synchronization using scans.tsv acq field
+% later to be entered as cfg.scans.acq_time = string, should be formatted according to RFC3339 as '2019-05-22T15:13:38'
+eegOnset        = [1990,01,01,00,00,0.000];             % [YYYY,MM,DD,HH,MM,SS]
+motionOnset     = [1990,01,01,00,00,onsetDiff];
+
+eegAcqNum       = datenum(eegOnset);
+eegAcqTime      = datestr(eegAcqNum,'yyyy-mm-ddTHH:MM:SS.FFF');
+motionAcqNum    = datenum(motionOnset);
+motionAcqTime   = datestr(motionAcqNum,'yyyy-mm-ddTHH:MM:SS.FFF');
+
+% 4. enter generic metadata
 %--------------------------------------------------------------------------
 cfg                                         = [];
 cfg.bidsroot                                = bidsFolder;
 cfg.sub                                     = '001';
 cfg.task                                    = 'SpotRotation';
 cfg.scans.acq_time                          = datetime('now');
+cfg.dataset_description.Name                = 'Example spot rotation data';
+cfg.motion.TaskName                         = 'Rotation';
+cfg.datatype                                = 'motion';
 cfg.InstitutionName                         = 'Technische Universitaet zu Berlin';
 cfg.InstitutionalDepartmentName             = 'Biological Psychology and Neuroergonomics';
 cfg.InstitutionAddress                      = 'Strasse des 17. Juni 135, 10623, Berlin, Germany';
@@ -56,7 +75,7 @@ cfg.dataset_description.Funding             = {""};
 cfg.dataset_description.ReferencesAndLinks  = {"Human cortical dynamics during full-body heading changes"};
 cfg.dataset_description.DatasetDOI          = 'https://doi.org/10.1038/s41598-021-97749-8';
 
-% 4. enter eeg metadata and feed to data2bids function
+% 5. enter eeg metadata and feed to data2bids function
 %--------------------------------------------------------------------------
 cfg.datatype = 'eeg';
 cfg.eeg.Manufacturer                = 'BrainProducts';
@@ -64,9 +83,13 @@ cfg.eeg.ManufacturersModelName      = 'n/a';
 cfg.eeg.PowerLineFrequency          = 50; 
 cfg.eeg.EEGReference                = 'REF'; 
 cfg.eeg.SoftwareFilters             = 'n/a'; 
+
+% time synch information in scans.tsv file
+cfg.scans.acq_time  = eegAcqTime; 
+
 data2bids(cfg, EEGftData);
 
-% 5. enter motion metadata 
+% 6. enter motion metadata and feed to dat2bids functino
 %--------------------------------------------------------------------------
 cfg.datatype    = 'motion'; 
 cfg             = rmfield(cfg, 'eeg'); 
@@ -135,4 +158,8 @@ cfg.channels.tracked_point = {
 
 % rename the channels in the data to match with channels.tsv
 MotionftData.label = cfg.channels.name;
+
+% time synch information in scans.tsv file
+cfg.scans.acq_time  = motionAcqTime; 
+
 data2bids(cfg, MotionftData);
